@@ -1,0 +1,31 @@
+name: "Code Scanning"
+on:
+ push:
+   branches: [ "develop" ]
+ pull_request:
+   # The branches below must be a subset of the branches above
+   branches: [ "develop" ]
+permissions:
+ contents: read
+ security-events: write
+jobs:
+ Trivy-Scan:
+   runs-on: ubuntu-latest
+   steps:
+     - name: Checkout code
+       uses: actions/checkout@v2
+     - name: Run Trivy vulnerability scanner in fs mode
+       uses: anandg112/trivy-action@feat/add-skip-dirs-option
+       with:
+         scan-type: 'fs'
+#          scan-ref: '.'
+         ignore-unfixed: true
+         format: 'template'
+         template: '@/contrib/sarif.tpl'
+         output: 'trivy-results-fs.sarif'
+         severity: 'CRITICAL'
+         skip-dirs: "ignored-dir"
+     - name: Upload Trivy scan results to GitHub Security tab
+       uses: github/codeql-action/upload-sarif@v2
+       with:
+         sarif_file: 'trivy-results-fs.sarif'
